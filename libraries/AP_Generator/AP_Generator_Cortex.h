@@ -62,7 +62,16 @@ public:
     }
 
     bool is_ready(void) const {
-        return is_connected() && telemetry.status.status.readyToRun;
+        if (!is_connected()) {
+            return false;
+        }
+    
+    const auto mode = telemetry.status.status.mode;
+    
+    // readyToRun is asserted in standby and running
+    // cranking is excluded as it is a transient state.
+    return telemetry.status.status.readyToRun
+            || mode == CORTEX_MODE_RUNNING;
     }
 
     // healthy returns true if the generator is not present, or it is
@@ -110,9 +119,17 @@ private:
 
     // Last telemetry reading from the generator
     uint32_t last_reading_ms;
+    uint32_t _last_logged_reading_ms;
 
     // Connection state, used to detect changes
     bool connected;
+
+    uint8_t  get_warning_mask(void) const;
+    uint16_t get_error_mask(void) const;
+
+#if HAL_LOGGING_ENABLED
+    void Log_Write(void);
+#endif
 
     bool send_message(AP_HAL::CANFrame &frame);
 };
