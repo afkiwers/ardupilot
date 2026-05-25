@@ -142,9 +142,6 @@ void AP_Generator_Cortex::send_generator_status(const GCS_MAVLINK &channel)
             break;
         case CORTEX_MODE_STANDBY:
             status_flags |= MAV_GENERATOR_STATUS_FLAG_IDLE;
-            if (status.readyToRun) {
-                status_flags |= MAV_GENERATOR_STATUS_FLAG_READY;
-            }
             break;
         case CORTEX_MODE_PREFLIGHT:
             break;
@@ -154,12 +151,6 @@ void AP_Generator_Cortex::send_generator_status(const GCS_MAVLINK &channel)
             break;
         case CORTEX_MODE_RUNNING:
             status_flags |= MAV_GENERATOR_STATUS_FLAG_READY;
-
-            // Negative current indicates generator is producing power, 
-            // positive current indicates it is consuming power (e.g. during cranking)
-            if (telemetry.generator.current <= 0.05f) {
-                status_flags |= MAV_GENERATOR_STATUS_FLAG_GENERATING;
-            }
             break;
     }
 
@@ -170,6 +161,10 @@ void AP_Generator_Cortex::send_generator_status(const GCS_MAVLINK &channel)
 
     if (telemetry.battery.current <= 0.1f) {
         status_flags |= MAV_GENERATOR_STATUS_FLAG_CHARGING;
+    }
+
+    if (telemetry.generator.current <= 0.05f) {
+        status_flags |= MAV_GENERATOR_STATUS_FLAG_GENERATING;
     }
 
     if (status.powerLimit) {
