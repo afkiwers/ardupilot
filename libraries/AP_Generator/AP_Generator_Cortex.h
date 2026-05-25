@@ -62,16 +62,7 @@ public:
     }
 
     bool is_ready(void) const {
-        if (!is_connected()) {
-            return false;
-        }
-    
-    const auto mode = telemetry.status.status.mode;
-    
-    // readyToRun is asserted in standby and running
-    // cranking is excluded as it is a transient state.
-    return telemetry.status.status.readyToRun
-            || mode == CORTEX_MODE_RUNNING;
+        return is_connected() && telemetry.status.status.readyToRun;
     }
 
     // healthy returns true if the generator is not present, or it is
